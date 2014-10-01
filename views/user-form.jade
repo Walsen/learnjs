@@ -1,0 +1,12 @@
+// Created by sergio.rodriguez on 9/30/14.
+
+extends layout
+
+block content
+    h1= title
+        form(id="frmUserProfile", method="post", action="")
+        label(for="FullName") Full Name
+        input(type="text", name="FullName", id="FullName")
+        label(for="Email") Email
+        input(type="email", name="Email", id="Email")
+        input(type="submit", value="#{buttonText}")
