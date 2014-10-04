@@ -35,6 +35,9 @@ router.post('/new', function(req, res) {
             }
         } else {
             console.log("User created and saved: " + user);
+            req.session.user = { "name" : user.name, "email" : user.email, "_id" : user._id };
+            req.session.loggedIn = true;
+            res.redirect('/user');
         }
     });
 });
