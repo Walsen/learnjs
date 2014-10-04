@@ -17,6 +17,15 @@ var projectSchema = new Schema( {
     tasks: String
 });
 
+projectSchema.statics.findByUserID = function(userid, callback) {
+    this.find(
+        { createBy: userid },
+        '_id projectName',
+        { sort : 'modifiedOn' },
+        callback
+    );
+};
+
 // Build the Project model
 module.exports = mongoose.model( 'Project', projectSchema );
 

@@ -6,7 +6,17 @@ var User = mongoose.model( 'User' );
 
 router.get( '/', function(req, res) {
     "use strict";
-    res.send("Welcome to the user page.");
+
+    if(req.session.loggedIn === true ) {
+        res.render( 'user-page', {
+           title: req.session.user.name,
+            name: req.session.user.name,
+            email: req.session.user.email,
+            userID: req.session.user._id
+        });
+    } else {
+        res.redirect('/login');
+    }
 });
 
 router.get('/new', function(req, res) {
@@ -65,11 +75,40 @@ router.post('/delete', function(req, res) {
 router.get('/login', function(req, res) {
     "use strict";
 
+    res.render('login-form', {
+        title: "Log in"
+    });
 });
 
 router.post('/login', function(req, res) {
     "use strict";
 
+    if(req.body.Email) {
+        User.findOne(
+            { 'email' : req.body.Email },
+            '_id name email',
+            function(err, user) {
+                if (!err) {
+                    if (!user) {
+                        res.redirect('/user/new');
+                        /*res.redirect('/login?404=user');*/
+                    } else {
+                        req.session.user = {
+                            "name" : user.name,
+                            "email" : user.email,
+                            "_id" : user._id
+                        };
+                        req.session.loggedIn = true;
+                        console.log('Logged in user: ' + user );
+                        res.redirect('/user');
+                    }
+                } else {
+                    res.redirect('/login?404=error');
+                }
+            });
+    } else {
+        res.redirect('/login?404=error');
+    }
 });
 
 router.get('/logout', function(req, res) {

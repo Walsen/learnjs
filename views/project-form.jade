@@ -1,0 +1,10 @@
+// Created by sergio.rodriguez on 10/4/14.
+extends layout
+
+block content
+    h1= title
+    form(id="frmProjectProfile", method="post", action="")
+        label(for="ProjectName") Project Name
+        input(type="text", name="ProjectName", id="ProjectName")
+        input(type="submit", value="#{buttonText}")
+

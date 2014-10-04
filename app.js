@@ -13,7 +13,6 @@ var routes = require('./routes/index');
 var user = require('./routes/user');
 var project = require('./routes/project');
 
-
 var app = express();
 
 app.use(session( {
