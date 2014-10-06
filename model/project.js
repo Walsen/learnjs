@@ -19,7 +19,7 @@ var projectSchema = new Schema( {
 
 projectSchema.statics.findByUserID = function(userid, callback) {
     this.find(
-        { createBy: userid },
+        { createdBy: userid },
         '_id projectName',
         { sort : 'modifiedOn' },
         callback

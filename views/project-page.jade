@@ -1,0 +1,10 @@
+// Created by sergio_rodriguez on 06-10-14.
+
+extends layout
+
+block content
+    h1 Mongoose Project Management
+    h2= projectName
+    p Created by: #{createdBy}
+    p Tasks: !{escape(tasks).replace(/\n/g, '<br/>')}
+

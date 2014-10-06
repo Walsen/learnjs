@@ -2,17 +2,16 @@
  * Created by sergio.rodriguez on 10/5/14.
  */
 $(document).ready(function(){
-    "use strict";
-
     var strHTMLOutput = '';
     $.ajax('/project/byuser/' + userID, {
+        type: "GET",
         dataType: 'json',
         error: function(){
             console.log("ajax error :(");
         },
         success: function (data) {
-            if(data.length > 0) {
-                if (data.status && data.status === 'error') {
+            if (data.length > 0) {
+                if (data.status && data.status === 'error'){
                     strHTMLOutput = "<li>Error: " + data.error + "</li>";
                 } else {
                     var intItem,
@@ -23,7 +22,7 @@ $(document).ready(function(){
                     }
                     strHTMLOutput = "<li>" + arrLI.join('</li><li>') + "</li>";
                 }
-            } else {
+            }else{
                 strHTMLOutput = "<li>You haven't created any projects yet</li>";
             }
             $('#myprojects').html(strHTMLOutput);
