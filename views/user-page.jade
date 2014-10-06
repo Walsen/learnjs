@@ -1,6 +1,11 @@
 // Created by sergio.rodriguez on 10/4/14.
 extends layout
 
+block headjs
+    script()
+        var userID = "#{userID}";
+    script(src="/javascripts/user.js")
+
 block content
 
     h1 Mongoose Project Management
@@ -16,7 +21,6 @@ block content
                 a(href="/user/delelte") Delete #{name}
             li
                 a(href="/logout") Logout #{name}
-
-
-
-
+        h3 My projects
+        ul#myprojects
+            li loading...
