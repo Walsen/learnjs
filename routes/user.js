@@ -103,46 +103,38 @@ router.post('/edit', function(req, res) {
     }
 });
 
-var doEditSave = function(req, res, err, user) {
-    "use strict";
-
-    if ( err ) {
-        console.log( err );
-        res.redirect('/user?error=finding');
-    } else {
-        user.name = req.body.FullName;
-        user.email = req.body.Email;
-        user.modifiedOn = Date.now();
-        user.save(
-            function (err, user) {
-                onEditSave(req, res, err, user);
-            }
-        );
-    }
-};
-
-var onEditSave = function(req, res, err, user) {
-    "use strict";
-
-    if ( err ) {
-        console.log( err );
-        res.redirect('/user?error=saving');
-    } else {
-        console.log('User updated: ' + req.body.FullName );
-        req.session.user.name = req.body.FullName;
-        req.session.user.email = req.body.Email;
-        res.redirect('/user');
-    }
-};
-
+/**
+ * GET yser delete confirmation form
+ */
 router.get('/delete', function(req, res) {
     "use strict";
 
+    res.render('user-delete-form', {
+        title: 'Delete account',
+        _id: req.session.user._id,
+        name: req.session.user.name,
+        email: req.session.user.email
+    });
 });
 
+/**
+ * POST user delete form.
+ */
 router.post('/delete', function(req, res) {
     "use strict";
 
+    if ( req.body._id ) {
+        User.findByIdAndRemove( req.body._id, function(err, user) {
+            if ( err ) {
+                console.log( err );
+                return res.redirect('/user?error=deleting');
+            }
+            console.log("User deleted: ", user);
+            clearSession( req, res, function() {
+                res.redirect('/');
+            });
+        });
+    }
 });
 
 router.get('/login', function(req, res) {
@@ -153,6 +145,9 @@ router.get('/login', function(req, res) {
     });
 });
 
+/**
+ * POST log in a user.
+ */
 router.post('/login', function(req, res) {
     "use strict";
 
@@ -190,9 +185,76 @@ router.post('/login', function(req, res) {
     }
 });
 
+/**
+ * GET Logs out the user.
+ */
 router.get('/logout', function(req, res) {
     "use strict";
 
+    clearSession( req, res, function() {
+        res.redirect('/');
+    });
 });
+
+/****************** Non route methods *********************/
+
+/**
+ *
+ * @param req
+ * @param res
+ * @param err
+ * @param user
+ */
+
+var doEditSave = function(req, res, err, user) {
+    "use strict";
+
+    if ( err ) {
+        console.log( err );
+        res.redirect('/user?error=finding');
+    } else {
+        user.name = req.body.FullName;
+        user.email = req.body.Email;
+        user.modifiedOn = Date.now();
+        user.save(
+            function (err, user) {
+                onEditSave(req, res, err, user);
+            }
+        );
+    }
+};
+
+/**
+ *
+ * @param req
+ * @param res
+ * @param err
+ * @param user
+ */
+var onEditSave = function(req, res, err, user) {
+    "use strict";
+
+    if ( err ) {
+        console.log( err );
+        res.redirect('/user?error=saving');
+    } else {
+        console.log('User updated: ' + req.body.FullName );
+        req.session.user.name = req.body.FullName;
+        req.session.user.email = req.body.Email;
+        res.redirect('/user');
+    }
+};
+
+/**
+ *
+ * @param req
+ * @param res
+ * @param callback
+ */
+var clearSession = function (req, res, callback) {
+    req.session.user = {};
+    req.session.loggedIn = "";
+    callback();
+};
 
 module.exports = router;

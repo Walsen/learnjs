@@ -136,14 +136,51 @@ router.post( '/edit/:id', function(req, res) {
     }
 });
 
+/**
+ * GET project delete confirmation form.
+ */
 router.get( '/delete/:id', function(req, res) {
     "use strict";
 
+    if ( req.session.loggedIn !== true ) {
+        res.redirect('/login');
+    } else {
+        if( req.params.id ) {
+            Project.findById( req.params.id, function( err, project) {
+                if ( err ) {
+                    console.log( err );
+                    res.redirect('/project/' + req.params.id);
+                } else {
+                    res.render('project-delete-form', {
+                        title: "Delete " + project.projectName + "?",
+                        projectName: project.projectName,
+                        projectID: req.params.id,
+                        userID: req.session.user._id
+                    });
+                }
+            });
+        } else {
+            res.redirect('/user');
+        }
+    }
 });
 
+/**
+ * POST project delete form.
+ */
 router.post( '/delete/:id', function(req, res) {
     "use strict";
 
+    if ( req.body.projectID ) {
+        Project.findByIdAndRemove( req.body.projectID, function( err, project ) {
+            if ( err ) {
+                console.log( err );
+                return res.redirect('/project/' + req.body.projectID + '?error=deletion');
+            }
+            console.log("project id " + project._id + " deleted");
+            res.redirect('/user?confirm=project-deleted');
+        });
+    }
 });
 
 /**
