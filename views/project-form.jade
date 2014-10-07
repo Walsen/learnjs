@@ -6,11 +6,12 @@ block content
     form(id="frmProject", method="post", action="")
         p Project Owner: #{userName}
         input(type="hidden", name="userid", id="userid", value="#{userid}")
+        input(type="hidden", name="projectID", id="projectID", value="#{projectID}")
         label(for="projectName") Project Name
-        input(type="text", name="projectName", id="projectName")
+        input(type="text", name="projectName", id="projectName", value="#{projectName}")
         br
         label(for="tasks") Tasks
-        textarea(name="tasks", id="tasks")
+        textarea(name="tasks", id="tasks") #{tasks}
         br
         input(type="submit", value="#{buttonText}")
 

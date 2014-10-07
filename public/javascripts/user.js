@@ -3,7 +3,7 @@
  */
 $(document).ready(function(){
     var strHTMLOutput = '';
-    $.ajax('/project/byuser/' + userID, {
+    $.ajax('/project/byuser/54300302ed8b74221ba29703', {
         type: "GET",
         dataType: 'json',
         error: function(){
