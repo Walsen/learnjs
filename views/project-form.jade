@@ -3,6 +3,11 @@ extends layout
 
 block content
     h1= title
+    if errors.length > 0
+      ul(class="errors")
+        each error in errors
+          li= error
+
     form(id="frmProject", method="post", action="")
         p Project Owner: #{userName}
         input(type="hidden", name="userid", id="userid", value="#{userid}")

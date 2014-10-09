@@ -19,14 +19,37 @@ router.get( '/', function(req, res) {
     }
 });
 
+/**
+ * GET user creation form.
+ */
 router.get('/new', function(req, res) {
     "use strict";
 
+    var strName = '',
+        strEmail = '',
+        arrErrors = [];
+
+    if ( req.session.tmpUser ) {
+        strName = req.session.tmpUser.name;
+        strEmail = req.session.tmpUser.email;
+    }
+
+    if ( req.query ) {
+        if ( req.query.name === 'invalid' ) {
+            arrErrors.push('Please enter a valid name, minimum 5 characters');
+        }
+
+        if ( req.query.email === 'invalid' ) {
+            arrErrors.push('Please enter a valid email address');
+        }
+    }
     res.render('user-form', {
         title: 'Create user',
-        name: "",
-        email: "",
-        buttonText: "Join!"
+        id: "",
+        name: strName,
+        email: strEmail,
+        buttonText: "Join!",
+        errors: arrErrors
     });
 });
 
@@ -39,13 +62,21 @@ router.post('/new', function(req, res) {
         modifiedOn: Date.now(),
         lastLogin: Date.now()
     }, function(err, user) {
+        var qstring = '';
         if (err) {
             console.log(err);
             if(err.code === 11000) {
-                res.redirect('/user/new?exists=true');
+                qstring = 'exists=true';
+            } else if (err.name === "ValidationError") {
+                for ( var input in err.errors ) {
+                    qstring += input + '=invalid&';
+                    console.log(err.errors[input].message);
+                }
             } else {
                 res.redirect('/?error=true')
             }
+            req.session.tmpUser = { "name": req.body.FullName, "email": req.body.Email};
+            res.redirect('/user/new?' + qstring);
         } else {
             console.log("User created and saved: " + user);
             req.session.user = { "name" : user.name, "email" : user.email, "_id" : user._id };
@@ -55,24 +86,48 @@ router.post('/new', function(req, res) {
     });
 });
 
-/**
- * GET user edit form
- */
 router.get('/edit', function(req, res) {
     "use strict";
 
-    if ( req.session.loggedIn !== true ) {
-        res.redirect('/login');
-    } else {
-        res.render( 'user-form', {
+    if ( req.session.loggedIn ) {
+        var strName = '',
+            strEmail = '',
+            arrErrors = [];
+
+        if (req.session.tmpUser) {
+            strName = req.session.tmpUser.name;
+            strEmail = req.session.tmpUser.email;
+            req.session.tmpUser = '';
+        } else {
+            strName = req.session.user.name;
+            strEmail = req.session.user.email;
+        }
+
+        if (req.query) {
+            if (req.query.name === 'invalid') {
+                arrErrors.push('Please enter a valid name, minimum 5 characters');
+            }
+
+            if (req.query.email === 'invalid') {
+                arrErrors.push('Please enter a valid email address');
+            }
+        }
+        res.render('user-form', {
             title: 'Edit profile',
             _id: req.session.user._id,
             name: req.session.user.name,
             email: req.session.user.email,
-            buttonText: "Save"
+            buttonText: "Save",
+            errors: arrErrors
         });
+    } else {
+            res.redirect('/login');
     }
 });
+
+/**
+ * GET user edit form
+ */
 
 /**
  * POST user edit form
@@ -82,22 +137,6 @@ router.post('/edit', function(req, res) {
 
     if ( req.session.user._id ) {
         User.findById( req.session.user._id, function( err, user ) {
-            /*if ( err ) {
-                console.log( err );
-                res.redirect('/user?error=finding');
-            } else {
-                user.name = req.body.FullName;
-                user.email = req.body.Email;
-                user.modifiedOn = Date.now();
-                user.save( function(err) {
-                    if ( !err ) {
-                        console.log( 'User updated: ' + req.body.FullName );
-                        req.session.user.name = req.body.FullName;
-                        req.session.user.email = req.body.Email;
-                        res.redirect('/user');
-                    }
-                });
-            }*/
             doEditSave(req, res, err, user);
         });
     }
@@ -127,16 +166,19 @@ router.post('/delete', function(req, res) {
         User.findByIdAndRemove( req.body._id, function(err, user) {
             if ( err ) {
                 console.log( err );
-                return res.redirect('/user?error=deleting');
+            } else {
+                console.log("User deleted: ", user);
+                clearSession( req, res, function() {
+                    res.redirect('/');
+                });
             }
-            console.log("User deleted: ", user);
-            clearSession( req, res, function() {
-                res.redirect('/');
-            });
         });
     }
 });
 
+/**
+ * GET Login page.
+ */
 router.get('/login', function(req, res) {
     "use strict";
 
@@ -158,8 +200,7 @@ router.post('/login', function(req, res) {
             function(err, user) {
                 if (!err) {
                     if (!user) {
-                        res.redirect('/user/new');
-                        /*res.redirect('/login?404=user');*/
+                        res.redirect('/login?404=user');
                     } else {
                         req.session.user = {
                             "name" : user.name,
@@ -234,9 +275,20 @@ var doEditSave = function(req, res, err, user) {
 var onEditSave = function(req, res, err, user) {
     "use strict";
 
+    var qstring = '';
+
     if ( err ) {
         console.log( err );
-        res.redirect('/user?error=saving');
+        if ( err.name === "ValidationError" ) {
+            for ( var input in err.errors ) {
+                qstring += input + '=invalid%';
+                console.log(err.errors[input].message);
+            }
+        } else {
+            res.redirect('/?error=true');
+        }
+        req.session.tmpUser = { "name": req.body.FullName, "email": req.body.Email };
+        res.redirect('/user/edit?' + qstring);
     } else {
         console.log('User updated: ' + req.body.FullName );
         req.session.user.name = req.body.FullName;
