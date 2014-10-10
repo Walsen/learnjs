@@ -15,6 +15,15 @@ var isNotTooShort = function (string) {
 // var validateLength = [isNotTooShort, 'Too short'];
 var validateLength = [{validator: isNotTooShort, msg: "Too short"}];
 
+var taskSchema = new mongoose.Schema({
+    taskName: { type: String, required: true, validate: validateLength },
+    taskDesc: String,
+    createdOn: { type: Date, default: Date.now() },
+    CreatedBy: { type: mongoose.Schema.Type.ObjectId, ref: 'User', required: true },
+    modifiedOn: Date,
+    assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+});
+
 var projectSchema = new Schema( {
     projectName: String,
     /* Validate projectName inline calling the function directly */
@@ -24,9 +33,9 @@ var projectSchema = new Schema( {
 
     createdOn: { type: Date, default: Date.now },
     modifiedOn: Date,
-    createdBy: { type: String, require: true },
-    contributors: String,
-    tasks: String
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', require: true },
+    contributors: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
+    tasks: [taskSchema]
 });
 
 projectSchema.statics.findByUserID = function(userid, callback) {
@@ -58,5 +67,6 @@ projectSchema.path('projectName').validate(function(value, respond) {
 }, 'Duplicate projectName');
 
 // Build the Project model
-module.exports = mongoose.model( 'Project', projectSchema );
+var Project = mongoose.model( 'Project', projectSchema );
+//module.exports = mongoose.model( 'Project', projectSchema );
 
